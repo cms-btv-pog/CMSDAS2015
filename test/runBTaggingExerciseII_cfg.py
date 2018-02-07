@@ -52,8 +52,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        # /TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM
-        'root://cmseos.fnal.gov//store/user/cmsdas/2017/short_exercises/BTagging/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/50000/0806AB92-99BE-E611-9ECD-0025905A6138.root'
+      '/store/mc/RunIISummer17MiniAOD/BulkGravTohhTohbbhbb_narrow_M-3000_13TeV-madgraph/MINIAODSIM/92X_upgrade2017_realistic_v10-v2/90000/06BC74E3-989A-E711-AE10-549F35AF447B.root'
     )
 )
 
@@ -91,7 +90,11 @@ bTagDiscriminators = [
     'pfSimpleSecondaryVertexHighPurBJetTags',
     'pfCombinedSecondaryVertexV2BJetTags',
     'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-    'pfCombinedMVAV2BJetTags'
+    'pfCombinedMVAV2BJetTags',
+    'pfDeepCSVJetTags:probudsg',        
+    'pfDeepCSVJetTags:probb',           
+    'pfDeepCSVJetTags:probc',           
+    'pfDeepCSVJetTags:probbb',          
 ]
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
@@ -103,9 +106,24 @@ updateJetCollection(
     btagDiscriminators = bTagDiscriminators
 )
 
+updateJetCollection(
+    process,
+    labelName='FatPF',
+    jetSource=cms.InputTag('slimmedJetsAK8'),
+    jetCorrections = ('AK8PFPuppi', ['L2Relative', 'L3Absolute'], 'None'), 
+    btagDiscriminators = bTagDiscriminators,
+)
+
+updateJetCollection(
+    process,
+    labelName='SoftDropSubjetsPF',
+    jetSource=cms.InputTag('slimmedJetsAK8PFPuppiSoftDropPacked:SubJets'),
+    jetCorrections = ('AK4PFPuppi', ['L2Relative', 'L3Absolute'], 'None'),
+    btagDiscriminators = bTagDiscriminators,
+)
 
 ## Initialize analyzer
-process.bTaggingExerciseII = cms.EDAnalyzer('BTaggingExerciseII',
+process.bTaggingExerciseIIAK4Jets = cms.EDAnalyzer('BTaggingExerciseII',
     jets = cms.InputTag('selectedUpdatedPatJets'), # input jet collection name
     bDiscriminators = cms.vstring(      # list of b-tag discriminators to access
         'pfTrackCountingHighEffBJetTags',
@@ -116,9 +134,63 @@ process.bTaggingExerciseII = cms.EDAnalyzer('BTaggingExerciseII',
         'pfSimpleSecondaryVertexHighPurBJetTags',
         'pfCombinedSecondaryVertexV2BJetTags',
         'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-        'pfCombinedMVABJetTags'
+        'pfCombinedMVAV2BJetTags',
+        'pfDeepCSVJetTags:probudsg',        
+        'pfDeepCSVJetTags:probb',           
+        'pfDeepCSVJetTags:probc',           
+        'pfDeepCSVJetTags:probbb',          
     )
 )
 
+process.bTaggingExerciseIIAK8Jets = cms.EDAnalyzer('BTaggingExerciseII',
+    jets = cms.InputTag('selectedUpdatedPatJetsFatPF'), # input jet collection name
+    bDiscriminators = cms.vstring(      # list of b-tag discriminators to access
+        'pfTrackCountingHighEffBJetTags',
+        'pfTrackCountingHighPurBJetTags',
+        'pfJetProbabilityBJetTags',
+        'pfJetBProbabilityBJetTags',
+        'pfSimpleSecondaryVertexHighEffBJetTags',
+        'pfSimpleSecondaryVertexHighPurBJetTags',
+        'pfCombinedSecondaryVertexV2BJetTags',
+        'pfCombinedInclusiveSecondaryVertexV2BJetTags',
+        'pfCombinedMVAV2BJetTags',
+        'pfDeepCSVJetTags:probudsg',        
+        'pfDeepCSVJetTags:probb',           
+        'pfDeepCSVJetTags:probc',           
+        'pfDeepCSVJetTags:probbb',          
+    )
+)
+
+process.bTaggingExerciseIISubJets = cms.EDAnalyzer('BTaggingExerciseII',
+    jets = cms.InputTag('selectedUpdatedPatJetsSoftDropSubjetsPF'), # input jet collection name
+    bDiscriminators = cms.vstring(      # list of b-tag discriminators to access
+        'pfTrackCountingHighEffBJetTags',
+        'pfTrackCountingHighPurBJetTags',
+        'pfJetProbabilityBJetTags',
+        'pfJetBProbabilityBJetTags',
+        'pfSimpleSecondaryVertexHighEffBJetTags',
+        'pfSimpleSecondaryVertexHighPurBJetTags',
+        'pfCombinedSecondaryVertexV2BJetTags',
+        'pfCombinedInclusiveSecondaryVertexV2BJetTags',
+        'pfCombinedMVAV2BJetTags',
+        'pfDeepCSVJetTags:probudsg',        
+        'pfDeepCSVJetTags:probb',           
+        'pfDeepCSVJetTags:probc',           
+        'pfDeepCSVJetTags:probbb',          
+    )
+)
+
+process.task = cms.Task()
+for mod in process.producers_().itervalues():
+    process.task.add(mod)
+for mod in process.filters_().itervalues():
+    process.task.add(mod)
+
 ## Let it run
-process.p = cms.Path(process.bTaggingExerciseII)
+process.p = cms.Path(
+    process.bTaggingExerciseIIAK4Jets
+    * process.bTaggingExerciseIIAK8Jets
+    * process.bTaggingExerciseIISubJets
+    ,process.task ) 
+
+open('dump.py', 'w').write(process.dumpPython())
