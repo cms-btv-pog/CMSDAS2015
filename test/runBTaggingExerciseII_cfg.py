@@ -124,7 +124,6 @@ updateJetCollection(
     btagDiscriminators = bTagDiscriminators,
 )
 
-<<<<<<< HEAD
 updateJetCollection(
     process,
     labelName='FatPF',
