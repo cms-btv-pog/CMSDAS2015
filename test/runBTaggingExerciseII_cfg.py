@@ -124,19 +124,12 @@ updateJetCollection(
     btagDiscriminators = bTagDiscriminators,
 )
 
-updateJetCollection(
+"""updateJetCollection(
     process,
-    labelName='FatPF',
-    jetSource=cms.InputTag('slimmedJetsAK8'),
-    jetCorrections = ('AK8PFPuppi', ['L2Relative', 'L3Absolute'], 'None'), 
+    labelName='SoftDropSubjetsPF',
+    jetSource=cms.InputTag('slimmedJetsAK8PFPuppiSoftDropPacked:SubJets'),
+    jetCorrections = ('AK4PFPuppi', ['L2Relative', 'L3Absolute'], 'None'),
     btagDiscriminators = bTagDiscriminators,
-)
-
-updateJetCollection(
-)
-
-## Initialize analyzer
-process.bTaggingExerciseIIAK4Jets = cms.EDAnalyzer('BTaggingExerciseII',
 )"""
 
 ## Initialize analyzer
