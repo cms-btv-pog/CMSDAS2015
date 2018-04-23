@@ -113,6 +113,22 @@ BTaggingExerciseI::~BTaggingExerciseI()
 void
 BTaggingExerciseI::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+ // define a jet handle
+  edm::Handle<std::vector<pat::Jet> > jets;
+  // get jets from the event
+  iEvent.getByToken(jets_, jets);
+
+  // loop over jets
+  for( auto jet = jets->begin(); jet != jets->end(); ++jet )
+  {
+    // fill discriminator histograms
+    for( const std::string &bDiscr : bDiscriminators_ ){
+     if(bDiscr != "pfDeepCSVJetTags")
+      bDiscriminatorsMap[bDiscr]->Fill( jet->bDiscriminator(bDiscr) );
+     if(bDiscr == "pfDeepCSVJetTags")
+      bDiscriminatorsMap[bDiscr]->Fill(jet->bDiscriminator("pfDeepCSVJetTags:probb") + jet->bDiscriminator("pfDeepCSVJetTags:probbb") ); 
+    }
+  }
 
 }
 
